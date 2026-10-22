@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Нейромагия</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+SC:wght@500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Marck+Script&family=PT+Mono&display=swap">
+<style>
+/* Layout: зал школы волшебства. Главная — титул + карта уроков-свитков; урок — оглавление слева, справа видео, промты-заклинания и материалы. Один тёмный мир. */
+[hidden]{display:none!important}
+:root{
+  color-scheme:dark;
+  --bg:#0D0A08; --leather:#241A13; --leather-2:#150F0B;
+  --parch:#E6D6B4; --parch-2:#F2E7CE; --parch-edge:#BFA67C;
+  --ink:#2A1C12; --ink-soft:#5E4A36; --ink-faint:#8C7A5E;
+  --cream:#EFE4CC; --muted:#B8A88B; --dim:#857559;
+  --gold:#C9A45C; --gold-hi:#F1D896; --gold-lo:#8A6A2E;
+  --wine:#6E1A24; --emerald:#2F6B55;
+  --f-display:"Cormorant SC","Cormorant Garamond",Georgia,serif;
+  --f-body:"Lora",Georgia,"Times New Roman",serif;
+  --f-script:"Marck Script","Segoe Script",cursive;
+  --f-mono:"PT Mono",ui-monospace,Menlo,monospace;
+}
+html{background:var(--bg)}
+body{margin:0;color:var(--cream);font-family:var(--f-body);font-size:16.5px;line-height:1.6;overflow-x:hidden;
+  background:radial-gradient(ellipse 55% 38% at 12% 0%,rgba(232,160,80,.11),transparent 70%),radial-gradient(ellipse 45% 35% at 92% 6%,rgba(232,160,80,.08),transparent 70%),radial-gradient(ellipse 80% 60% at 50% 45%,rgba(30,74,60,.15),transparent 75%),var(--bg)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;font-weight:700}
+a{color:var(--gold-hi)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold-hi);outline-offset:3px}
+img{max-width:100%}
+.sky{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,240,210,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.3) 1px,transparent 1px);background-size:132px 58px;-webkit-mask-image:radial-gradient(ellipse at 50% 40%,#000 25%,transparent 85%);mask-image:radial-gradient(ellipse at 50% 40%,#000 25%,transparent 85%)}
+#dust{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 64px}
+
+/* HUD */
+.hud{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 24px;margin-bottom:22px}
+.brand{display:flex;align-items:center;gap:12px;font-family:var(--f-display);font-weight:700;font-size:17px;letter-spacing:.22em;color:var(--gold-hi);background:none;border:0;cursor:pointer;padding:0}
+.seal{display:grid;place-items:center;flex:none;font-family:var(--f-display);font-weight:700;color:var(--gold-hi);border-radius:48% 52% 50% 50%/52% 48% 52% 48%;background:radial-gradient(circle at 35% 30%,#A9384A,#6E1A24 58%,#470E16);box-shadow:0 3px 6px rgba(0,0,0,.6),inset 0 0 0 3px rgba(0,0,0,.18),inset 0 0 0 5px rgba(241,216,150,.22)}
+.brand .seal{width:42px;height:42px;font-size:22px}
+.prog{display:grid;gap:5px;min-width:min(260px,100%);padding:8px 16px;border-radius:4px;color:var(--ink);background:linear-gradient(180deg,var(--parch-2),var(--parch));border:1px solid var(--parch-edge);box-shadow:0 8px 20px rgba(0,0,0,.55),inset 0 0 22px rgba(150,110,60,.28)}
+.prog .row{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+.prog b{font-family:var(--f-display);font-size:17px}
+.prog span{color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.bar{height:7px;border-radius:7px;background:rgba(42,28,18,.14);border:1px solid rgba(42,28,18,.28);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-lo),var(--gold),var(--gold-hi));transition:width .6s ease}
+
+/* главная */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:clamp(16px,3vw,48px);align-items:center;margin-bottom:28px}
+.eyebrow{font-family:var(--f-script);font-size:clamp(20px,2.4vw,28px);color:var(--gold);line-height:1.15}
+h1.title{font-size:clamp(52px,9vw,116px);line-height:.92;background:linear-gradient(180deg,#FFF3CC 0%,#EBCB7C 36%,#B4863A 60%,#F2D894 78%,#94692A 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #3A2610) drop-shadow(0 0 26px rgba(232,180,90,.3))}
+.flourish{display:flex;align-items:center;gap:14px;color:var(--gold);max-width:520px;margin:10px 0 14px}
+.flourish::before,.flourish::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold) 50%,transparent)}
+.lead{color:var(--muted);font-size:17.5px;margin:0;max-width:640px}
+.herobtns{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+.portal{position:relative;width:clamp(180px,22vw,270px);aspect-ratio:1;border-radius:50%;margin-right:clamp(0px,2vw,24px)}
+.portal .ring{position:absolute;inset:-9px;border-radius:50%;background:conic-gradient(from 0deg,#8A6A2E,#F1D896,#B8893A,#FFF1C4,#8A6A2E,#E9C878,#7A5A24,#F1D896,#8A6A2E);box-shadow:0 0 0 2px #2A1B0C,0 14px 34px rgba(0,0,0,.6),0 0 46px rgba(232,170,80,.28)}
+.portal .ring::after{content:"";position:absolute;inset:6px;border-radius:50%;background:#1A120D}
+.portal video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;filter:saturate(.9) sepia(.08)}
+.portal::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 26px 6px rgba(20,12,8,.8);pointer-events:none}
+@media (max-width:720px){.hero{grid-template-columns:minmax(0,1fr)}.portal{order:-1;justify-self:center;width:180px;margin:10px 0}}
+
+.sectitle{display:flex;align-items:baseline;gap:14px;margin:8px 0 18px}
+.sectitle h2{font-size:clamp(28px,4vw,40px);color:var(--gold-hi)}
+.sectitle span{font-family:var(--f-script);color:var(--gold);font-size:20px}
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:16px}
+.lcard{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;align-items:start;text-align:left;cursor:pointer;padding:16px 18px;border-radius:6px;color:var(--cream);
+  border:1px solid var(--gold-lo);background:linear-gradient(180deg,#2B1F17,#160F0B);box-shadow:inset 0 0 0 4px #160F0B,inset 0 0 0 5px rgba(201,164,92,.38),0 10px 22px rgba(0,0,0,.5);transition:transform .25s ease,box-shadow .25s,border-color .25s}
+.lcard:hover{transform:translateY(-4px);border-color:var(--gold);box-shadow:inset 0 0 0 4px #160F0B,inset 0 0 0 5px rgba(241,216,150,.7),0 16px 30px rgba(0,0,0,.6),0 0 30px rgba(232,170,80,.22)}
+.num{width:38px;height:38px;display:grid;place-items:center;flex:none;font-family:var(--f-display);font-weight:700;font-size:19px;color:var(--gold-hi);border-radius:48% 52% 50% 50%/52% 48% 52% 48%;background:radial-gradient(circle at 35% 30%,#A9384A,#6E1A24 58%,#470E16);box-shadow:0 2px 5px rgba(0,0,0,.5),inset 0 0 0 3px rgba(241,216,150,.2);grid-row:span 2}
+.ltxt{display:grid;gap:3px;min-width:0}
+.ltxt b{font-family:var(--f-display);font-size:22px;line-height:1.15;color:var(--gold-hi)}
+.ltxt span{color:var(--muted);font-size:14.5px;line-height:1.45}
+.lmeta{grid-column:2;font-size:13px;color:var(--gold);letter-spacing:.04em}
+.tick{position:absolute;top:12px;right:14px;width:24px;height:24px;border-radius:50%;display:none;place-items:center;font-size:13px;font-weight:700;color:#10241C;background:var(--gold-hi);box-shadow:0 0 12px rgba(241,216,150,.6)}
+.done .tick{display:grid}
+.done .num{background:radial-gradient(circle at 35% 30%,#4E9A7C,#2F6B55 58%,#1C4535)}
+.final{margin-top:30px}
+
+/* урок */
+.lessonview{display:grid;grid-template-columns:280px minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:960px){.lessonview{grid-template-columns:minmax(0,1fr)}.sidebar{display:none}}
+.sidebar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);display:grid;gap:4px;padding:12px;border-radius:6px;background:linear-gradient(180deg,#22180F,#140E0A);border:1px solid var(--gold-lo);box-shadow:inset 0 0 0 3px #140E0A,inset 0 0 0 4px rgba(201,164,92,.3)}
+.sidebar .stitle{font-family:var(--f-display);font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);padding:6px 8px 8px;background:none;border:0;text-align:left;cursor:pointer}
+.snav{position:relative;display:flex;align-items:center;gap:10px;text-align:left;padding:7px 34px 7px 8px;border-radius:4px;border:0;background:none;cursor:pointer;font-size:14.5px;color:var(--muted);line-height:1.3}
+.snav .num{width:28px;height:28px;font-size:14px;grid-row:auto}
+.snav:hover{background:rgba(201,164,92,.08);color:var(--cream)}
+.snav[aria-current="true"]{background:rgba(201,164,92,.16);color:var(--gold-hi)}
+.snav .tick{top:50%;right:8px;transform:translateY(-50%);width:20px;height:20px;font-size:11px}
+.back{background:none;border:0;padding:6px 0;cursor:pointer;color:var(--muted);font-family:var(--f-display);font-weight:700;font-size:17px;margin-bottom:10px}
+.back:hover{color:var(--gold-hi)}
+.lhead{margin-bottom:22px}
+.lhead .eyebrow{font-size:22px}
+.lhead h2{font-size:clamp(32px,5vw,52px);line-height:1.02;color:var(--gold-hi);margin:2px 0 8px}
+.lbody{display:grid;gap:22px;min-width:0}
+.lbody>p{margin:0;color:var(--cream)}
+h3.sub{font-size:clamp(24px,3vw,30px);color:var(--gold-hi);margin-top:10px;display:flex;align-items:center;gap:12px}
+h3.sub::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--gold-lo),transparent)}
+.duo{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:18px;align-items:start}
+.trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
+@media (max-width:760px){.duo,.trio{grid-template-columns:minmax(0,1fr)}}
+
+.player{position:relative;aspect-ratio:1668/1080;max-width:100%;border-radius:6px;overflow:hidden;background:#0a0705;border:1px solid var(--gold-lo);box-shadow:inset 0 0 0 3px #0a0705,inset 0 0 0 4px rgba(201,164,92,.4),0 14px 30px rgba(0,0,0,.55)}
+.player video{position:absolute;inset:0;width:100%;height:100%;background:#000}
+.cover{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:10px;cursor:pointer;border:0;padding:16px;text-align:center;
+  background:radial-gradient(ellipse at 50% 45%,rgba(110,26,36,.35),transparent 60%),radial-gradient(ellipse at 50% 120%,rgba(232,170,80,.18),transparent 60%),linear-gradient(180deg,#22170F,#0E0906)}
+.playseal{width:clamp(64px,9vw,92px);height:clamp(64px,9vw,92px);display:grid;place-items:center;padding-left:6px;box-sizing:border-box;font-size:clamp(24px,3.4vw,34px);color:var(--gold-hi);border-radius:48% 52% 50% 50%/52% 48% 52% 48%;background:radial-gradient(circle at 35% 30%,#A9384A,#6E1A24 58%,#470E16);box-shadow:0 6px 18px rgba(0,0,0,.6),inset 0 0 0 4px rgba(241,216,150,.22),0 0 40px rgba(232,170,80,.25);transition:transform .25s}
+.cover:hover .playseal{transform:scale(1.08)}
+.ptitle{font-family:var(--f-display);font-weight:700;font-size:clamp(20px,2.6vw,30px);color:var(--gold-hi);line-height:1.15}
+.pdur{font-size:14px;color:var(--muted);letter-spacing:.06em}
+
+.loopv,.gallery{margin:0;display:grid;gap:8px}
+.loopv video{width:100%;border-radius:6px;border:1px solid rgba(201,164,92,.45);display:block}
+figcaption{font-family:var(--f-script);font-size:19px;color:var(--gold);text-align:center;grid-column:1/-1}
+.gallery.g1{max-width:760px}
+.gallery.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.gallery.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.gallery.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:640px){.gallery.g3,.gallery.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.shot{padding:0;border:1px solid rgba(201,164,92,.45);border-radius:5px;overflow:hidden;cursor:zoom-in;background:#0f0a07;display:block;transition:transform .25s,box-shadow .25s}
+.shot:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.5),0 0 20px rgba(232,170,80,.25)}
+.shot img{display:block;width:100%;height:auto}
+.gallery.g3 .shot img,.gallery.g4 .shot img{aspect-ratio:16/10;object-fit:cover}
+
+.spell{border-radius:5px;color:var(--ink);background:linear-gradient(180deg,var(--parch-2),var(--parch));border:1px solid var(--parch-edge);box-shadow:0 10px 24px rgba(0,0,0,.5),inset 0 0 36px rgba(150,110,60,.25);min-width:0}
+.spellhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;border-bottom:1px dashed rgba(42,28,18,.3)}
+.spelltitle{font-family:var(--f-display);font-weight:700;font-size:20px}
+.spell pre{margin:0;padding:14px 16px 16px;white-space:pre-wrap;word-break:break-word;font-family:var(--f-mono);font-size:13.5px;line-height:1.65;max-height:420px;overflow:auto}
+.copy{cursor:pointer;font-family:var(--f-display);font-weight:700;font-size:15px;color:var(--gold-hi);padding:4px 14px;border-radius:3px;background:linear-gradient(#9A2A38,#5E141D);border:1px solid var(--gold-lo);box-shadow:0 3px 8px rgba(0,0,0,.35)}
+.copy:hover{box-shadow:0 3px 8px rgba(0,0,0,.35),0 0 14px rgba(232,170,80,.5)}
+.copy.ok{background:linear-gradient(#3E8A6E,#24563F)}
+
+.links{display:flex;flex-wrap:wrap;gap:10px}
+.linkbtn{display:grid;gap:1px;text-decoration:none;padding:8px 16px 9px;border-radius:4px;color:var(--ink);background:linear-gradient(180deg,var(--parch-2),var(--parch));border:1px solid var(--parch-edge);box-shadow:0 4px 12px rgba(0,0,0,.45);transition:.2s;min-width:0}
+.linkbtn b{font-family:var(--f-display);font-size:19px;line-height:1.1}
+.linkbtn b::after{content:" ↗";color:var(--wine);font-size:15px}
+.linkbtn span{font-size:12.5px;color:var(--ink-soft)}
+.linkbtn:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.45),0 0 16px rgba(232,170,80,.4)}
+
+.note{padding:14px 18px 15px;border-radius:5px;border:1px solid var(--gold-lo);background:linear-gradient(180deg,rgba(201,164,92,.12),rgba(201,164,92,.05));box-shadow:inset 3px 0 0 var(--gold)}
+.note.warn{box-shadow:inset 3px 0 0 #B8473F;background:linear-gradient(180deg,rgba(184,71,63,.14),rgba(184,71,63,.05))}
+.note.gift{box-shadow:inset 3px 0 0 var(--emerald);background:linear-gradient(180deg,rgba(47,107,85,.2),rgba(47,107,85,.06))}
+.notetitle{font-family:var(--f-script);font-size:22px;color:var(--gold);display:block;line-height:1.1;margin-bottom:4px}
+.note p{margin:0}
+
+.lnav{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;margin-top:34px;padding-top:20px;border-top:1px solid rgba(201,164,92,.25)}
+.btn{cursor:pointer;font-family:var(--f-display);font-weight:700;font-size:17px;letter-spacing:.02em;color:var(--ink);padding:9px 18px;border-radius:3px;background:linear-gradient(180deg,var(--parch-2),var(--parch));border:1px solid var(--parch-edge);box-shadow:0 4px 10px rgba(0,0,0,.4);transition:.2s;text-align:left}
+.btn:hover{box-shadow:0 4px 10px rgba(0,0,0,.4),0 0 16px rgba(232,170,80,.4)}
+.btn.primary{color:var(--gold-hi);background:linear-gradient(#9A2A38,#5E141D);border-color:var(--gold-lo)}
+.btn.primary:hover{box-shadow:0 4px 10px rgba(0,0,0,.4),0 0 22px rgba(232,170,80,.55)}
+
+
+/* подарок */
+.lcard.giftcard{grid-column:1/-1;padding:22px 26px;border-color:var(--gold);overflow:hidden;isolation:isolate;
+  background:linear-gradient(90deg,transparent calc(82% - 14px),rgba(241,216,150,.85) calc(82% - 14px),#C9A45C 82%,rgba(241,216,150,.85) calc(82% + 14px),transparent calc(82% + 14px)),
+    linear-gradient(135deg,#7A1E2B,#4A0F18 55%,#2A0A10);
+  box-shadow:inset 0 0 0 4px #3A0C14,inset 0 0 0 5px rgba(241,216,150,.6),0 14px 34px rgba(0,0,0,.6),0 0 40px rgba(232,170,80,.35);animation:giftglow 2.6s ease-in-out infinite}
+.lcard.giftcard::before{content:"";position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(45deg,rgba(241,216,150,.05) 0 10px,transparent 10px 22px)}
+.lcard.giftcard::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 38%,rgba(255,236,190,.22) 50%,transparent 62%);transform:translateX(-130%);animation:shine 3.4s ease-in-out infinite}
+.lcard.giftcard .ltxt b{font-size:clamp(26px,3.2vw,34px);color:#FFF1C4;text-shadow:0 0 18px rgba(241,216,150,.5)}
+.lcard.giftcard .ltxt{max-width:calc(82% - 90px)}
+.lcard.giftcard .ltxt span{color:#E9D6B8;font-size:15.5px;max-width:60ch}
+.lcard.giftcard .lmeta{font-family:var(--f-display);font-weight:700;font-size:18px;color:var(--gold-hi);margin-top:6px}
+.lcard.giftcard .num{background:radial-gradient(circle at 35% 30%,#FFF1C4,#E0B860 55%,#9A7230);color:#4A0F18}
+.lcard.giftcard:hover{animation:giftglow 2.6s ease-in-out infinite,wiggle .5s ease}
+.gtag{position:absolute;bottom:14px;right:18px;font-family:var(--f-script);font-size:24px;color:#FFF1C4;text-shadow:0 0 12px rgba(241,216,150,.8)}
+.gbow{position:absolute;top:-6px;left:82%;width:84px;height:46px;margin-left:-42px;pointer-events:none;
+  background:radial-gradient(circle at 50% 70%,#F6E2A6 0 9px,transparent 10px),radial-gradient(ellipse 22px 16px at 26% 55%,#E9C878 0 98%,transparent 100%),radial-gradient(ellipse 22px 16px at 74% 55%,#E9C878 0 98%,transparent 100%);filter:drop-shadow(0 3px 4px rgba(0,0,0,.45))}
+@media (max-width:640px){.lcard.giftcard{background:linear-gradient(135deg,#7A1E2B,#4A0F18 55%,#2A0A10)}.lcard.giftcard .ltxt{max-width:none}.gbow{display:none}.gtag{position:static;grid-column:1/-1;font-size:20px}}
+@keyframes giftglow{50%{box-shadow:inset 0 0 0 4px #3A0C14,inset 0 0 0 5px rgba(241,216,150,.9),0 14px 34px rgba(0,0,0,.6),0 0 64px rgba(241,190,100,.6)}}
+@keyframes shine{0%,40%{transform:translateX(-130%)}80%,100%{transform:translateX(130%)}}
+@keyframes wiggle{20%{transform:rotate(-1deg) translateY(-3px)}40%{transform:rotate(1deg) translateY(-3px)}60%{transform:rotate(-.6deg)}80%{transform:rotate(.4deg)}}
+.snav.sgift{color:var(--gold-hi);background:linear-gradient(90deg,rgba(122,30,43,.55),rgba(122,30,43,.15));box-shadow:inset 0 0 0 1px rgba(241,216,150,.45)}
+.snav.sgift .num{background:radial-gradient(circle at 35% 30%,#FFF1C4,#E0B860 55%,#9A7230);color:#4A0F18}
+.giftbox{display:grid;justify-items:center;gap:16px;padding:30px 16px 34px;border-radius:8px;border:1px solid var(--gold-lo);background:radial-gradient(ellipse at 50% 40%,rgba(232,170,80,.18),transparent 65%),linear-gradient(180deg,#22170F,#110B07)}
+.box{position:relative;width:170px;height:140px;margin-top:30px;border-radius:6px;background:linear-gradient(135deg,#8A2433,#4A0F18);box-shadow:0 18px 40px rgba(0,0,0,.6),0 0 50px rgba(232,170,80,.35);animation:bounce 2.2s ease-in-out infinite}
+.box .lid{position:absolute;left:-10px;right:-10px;top:-30px;height:34px;border-radius:5px;background:linear-gradient(135deg,#9A2A38,#5E141D);box-shadow:0 4px 8px rgba(0,0,0,.4)}
+.box .ribbon-v{position:absolute;left:50%;top:-30px;bottom:0;width:26px;margin-left:-13px;background:linear-gradient(90deg,#B8893A,#F6E2A6,#B8893A)}
+.box .ribbon-h{position:absolute;left:0;right:0;top:48px;height:22px;background:linear-gradient(180deg,#B8893A,#F6E2A6,#B8893A)}
+.box .bow{position:absolute;left:50%;top:-62px;width:100px;height:40px;margin-left:-50px;background:radial-gradient(circle at 50% 75%,#F6E2A6 0 10px,transparent 11px),radial-gradient(ellipse 26px 17px at 27% 55%,#E9C878 0 98%,transparent 100%),radial-gradient(ellipse 26px 17px at 73% 55%,#E9C878 0 98%,transparent 100%)}
+.giftbox.open .box{animation:pop .7s ease forwards}
+.giftbox.open .lid{transition:transform .5s ease;transform:translateY(-60px) rotate(-18deg)}
+@keyframes bounce{50%{transform:translateY(-8px) rotate(-1.5deg)}}
+@keyframes pop{60%{transform:scale(1.15)}100%{transform:scale(.2);opacity:0}}
+.gifttxt{margin:0;font-family:var(--f-script);font-size:26px;color:var(--gold-hi)}
+.btn.big{font-size:20px;padding:12px 26px}
+.reveal{display:grid;justify-items:center;gap:20px;text-align:center;padding:28px 18px 32px;border-radius:8px;border:1px solid var(--gold);background:radial-gradient(ellipse at 50% 0%,rgba(232,170,80,.22),transparent 60%),linear-gradient(180deg,#2B1F17,#140E0A);box-shadow:0 0 50px rgba(232,170,80,.25);animation:rise .6s ease}
+.revealhead h3{font-size:clamp(32px,5vw,50px);color:#FFF1C4;text-shadow:0 0 22px rgba(241,216,150,.45)}
+.revealhead p{margin:8px auto 0;max-width:62ch;color:var(--cream)}
+.iconrow{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px;width:100%;max-width:820px}
+.iconrow img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;border:1px solid rgba(201,164,92,.5);filter:saturate(.85) sepia(.1)}
+@media (max-width:640px){.iconrow{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.genlink{text-decoration:none;display:inline-block}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@media (prefers-reduced-motion:reduce){.lcard.giftcard,.lcard.giftcard::after,.box{animation:none}}
+.lightbox{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:24px;background:rgba(8,5,3,.9);cursor:zoom-out}
+.lightbox img{max-width:min(1400px,100%);max-height:calc(100vh - 48px);border-radius:4px;border:1px solid var(--gold-lo);box-shadow:0 20px 60px rgba(0,0,0,.7)}
+.foot{margin-top:44px;font-size:13px;color:var(--dim)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="sky" aria-hidden="true"></div>
+<canvas id="dust" aria-hidden="true"></canvas>
+<div class="wrap">
+  <div class="hud">
+    <button class="brand" type="button" data-go="home"><span class="seal">Н</span>НЕЙРОМАГИЯ</button>
+    <div class="prog" aria-live="polite"><div class="row"><b>Путь ученика</b><span id="progtxt">0 из 10</span></div><div class="bar"><i id="progbar"></i></div></div>
+  </div>
+
+  <section id="home">
+    <div class="hero">
+      <div>
+        <div class="eyebrow">Школа волшебства для педагогов</div>
+        <h1 class="title">Нейромагия</h1>
+        <div class="flourish"><span>✦</span></div>
+        <p class="lead">Курс о том, как с помощью бесплатных нейросетей делать уроки-игры, веб-квесты, живые фоны, героев и рабочие листы. Смотрите видео, копируйте готовые промты и повторяйте.</p>
+        <div class="herobtns"><button class="btn primary" type="button" id="startbtn" data-go="intro">Начать обучение →</button></div>
+      </div>
+      <div class="portal" aria-hidden="true"><span class="ring"></span><video src="m/fairy.mp4" autoplay muted loop playsinline></video></div>
+    </div>
+    <div class="sectitle"><h2>Карта курса</h2><span>10 уроков</span></div>
+    <div class="map"><button class="lcard" type="button" data-go="intro"><span class="num">1</span><span class="ltxt"><b>Вводный урок</b><span>С чего начать и как общаться с нейросетью.</span></span><span class="lmeta">▶ 3:35</span><span class="tick" aria-hidden="true">✓</span></button><button class="lcard" type="button" data-go="qwen"><span class="num">2</span><span class="ltxt"><b>Блок 1. Квесты и фото в Qwen</b><span>Первые веб-квесты и фото в нейросети Qwen.</span></span><span class="lmeta">▶ 8:00</span><span class="tick" aria-hidden="true">✓</span></button><button class="lcard" type="button" data-go="gemini"><span class="num">3</span><span class="ltxt"><b>Блок 2. Gemini: квесты, тесты, фоны, герои</b><span>Квесты, тесты, атмосферные фоны и герои в Gemini.</span></span><span class="lmeta">▶ 13:00</span><span class="tick" aria-hidden="true">✓</span></button><button class="lcard" type="button" data-go="github"><span class="num">4</span><span class="ltxt"><b>Ссылка на веб-квест через GitHub</b><span>Как превратить игру в ссылку, которую можно отправить ученику.</span></span><span class="lmeta">▶ 1:54</span><span class="tick" aria-hidden="true">✓</span></button><button class="lcard" type="button" data-go="video"><span class="num">5</span><span class="ltxt"><b>Блок 3. Оживляем фото: видео в Flow</b><span>Превращаем картинки в живые видео для уроков.</span></span><span class="lmeta">▶ 2:28</span><span class="tick" aria-hidden="true">✓</span></button><button class="lcard" type="button" data-go="gpt"><span class="num">6</span><span class="ltxt"><b>Блок 4. ChatGPT: задания и таблички</b><span>Быстрые игры, тематические задания, таблицы и рабочие листы.</span></span><span class="lmeta">▶ 4:38</span><span class="tick" aria-hidden="true">✓</span></button><button class="lcard" type="button" data-go="generator"><span class="num">7</span><span class="ltxt"><b>Генератор игр со своими учениками</b><span>Игра, в которую можно вставить фото ученика и свой фон.</span></span><span class="lmeta">▶ 2:31</span><span class="tick" aria-hidden="true">✓</span></button><button class="lcard" type="button" data-go="avatars"><span class="num">8</span><span class="ltxt"><b>Аватары учеников</b><span>Делаем героя игры из фото ученика.</span></span><span class="lmeta">материалы</span><span class="tick" aria-hidden="true">✓</span></button><button class="lcard" type="button" data-go="husband"><span class="num">9</span><span class="ltxt"><b>Бонус: агрегаторы ИИ</b><span>Гайд от мужа: как пользоваться агрегаторами нейросетей.</span></span><span class="lmeta">материалы</span><span class="tick" aria-hidden="true">✓</span></button><button class="lcard giftcard" type="button" data-go="gift"><span class="gbow" aria-hidden="true"></span><span class="gtag">Подарок</span><span class="num">10</span><span class="ltxt"><b>Подарок: генератор уроков-игр</b><span>50 игровых механик: выбираете игру, заполняете анкету — получаете готовый промт.</span></span><span class="lmeta">Открыть подарок →</span><span class="tick" aria-hidden="true">✓</span></button></div>
+  </section>
+
+  <section id="lessons" hidden>
+    <div class="lessonview">
+      <nav class="sidebar" aria-label="Уроки"><button class="stitle" type="button" data-go="home">← Карта курса</button><button class="snav" type="button" data-go="intro"><span class="num">1</span>Вводный урок<span class="tick" aria-hidden="true">✓</span></button><button class="snav" type="button" data-go="qwen"><span class="num">2</span>Блок 1. Квесты и фото в Qwen<span class="tick" aria-hidden="true">✓</span></button><button class="snav" type="button" data-go="gemini"><span class="num">3</span>Блок 2. Gemini: квесты, тесты, фоны, герои<span class="tick" aria-hidden="true">✓</span></button><button class="snav" type="button" data-go="github"><span class="num">4</span>Ссылка на веб-квест через GitHub<span class="tick" aria-hidden="true">✓</span></button><button class="snav" type="button" data-go="video"><span class="num">5</span>Блок 3. Оживляем фото: видео в Flow<span class="tick" aria-hidden="true">✓</span></button><button class="snav" type="button" data-go="gpt"><span class="num">6</span>Блок 4. ChatGPT: задания и таблички<span class="tick" aria-hidden="true">✓</span></button><button class="snav" type="button" data-go="generator"><span class="num">7</span>Генератор игр со своими учениками<span class="tick" aria-hidden="true">✓</span></button><button class="snav" type="button" data-go="avatars"><span class="num">8</span>Аватары учеников<span class="tick" aria-hidden="true">✓</span></button><button class="snav" type="button" data-go="husband"><span class="num">9</span>Бонус: агрегаторы ИИ<span class="tick" aria-hidden="true">✓</span></button><button class="snav sgift" type="button" data-go="gift"><span class="num">10</span>Подарок: генератор уроков-игр<span class="tick" aria-hidden="true">✓</span></button></nav>
+      <div>
+        <button class="back" type="button" data-go="home">← Карта курса</button>
+        <article class="lesson" id="L-intro" hidden><div class="lhead"><span class="eyebrow">Урок 1 из 10</span><h2>Вводный урок</h2><p class="lead">С чего начать и как общаться с нейросетью.</p></div><div class="lbody"><div class="player" data-src="m/media1.mp4"><button class="cover" type="button" aria-label="Смотреть: Вводное видео"><span class="playseal">▶</span><span class="ptitle">Вводное видео</span><span class="pdur">3:35</span></button></div><aside class="note tip"><span class="notetitle">Главное правило</span><p>Главное — не бойтесь общаться с ИИ! Добавляйте в чате правки, меняйте, если что-то не нравится, загружайте свои референсы и пишите «не работает как надо!», если такое будет ;)</p></aside></div><nav class="lnav"><button class="btn" type="button" data-go="home">← К карте курса</button><button class="btn primary" type="button" data-go="qwen" data-done="intro">Пройдено, дальше →</button></nav></article><article class="lesson" id="L-qwen" hidden><div class="lhead"><span class="eyebrow">Урок 2 из 10</span><h2>Блок 1. Квесты и фото в Qwen</h2><p class="lead">Первые веб-квесты и фото в нейросети Qwen.</p></div><div class="lbody"><div class="links"><a class="linkbtn" href="https://chat.qwen.ai" target="_blank" rel="noopener"><b>Qwen</b><span>chat.qwen.ai</span></a></div><div class="player" data-src="m/media2.mp4"><button class="cover" type="button" aria-label="Смотреть: Веб-квесты и фото в Qwen"><span class="playseal">▶</span><span class="ptitle">Веб-квесты и фото в Qwen</span><span class="pdur">8:00</span></button></div><figure class="gallery g4"><button class="shot" type="button" data-full="m/i22.webp"><img src="m/i22.webp" alt="" loading="lazy"></button><button class="shot" type="button" data-full="m/i23.webp"><img src="m/i23.webp" alt="" loading="lazy"></button><button class="shot" type="button" data-full="m/i24.webp"><img src="m/i24.webp" alt="" loading="lazy"></button><button class="shot" type="button" data-full="m/i25.webp"><img src="m/i25.webp" alt="" loading="lazy"></button><figcaption>Игры, которые получились на уроке</figcaption></figure><h3 class="sub">Основа для своего промта</h3><div class="spell"><div class="spellhead"><span class="spelltitle">Промт для игры</span><button class="copy" type="button">Скопировать</button></div><pre>Создай и отправь готовый код для веб-игры, адаптированной под мобильную версию. Игра должна быть интерактивной и анимированной, полностью на русском языке.
+Тема урока, класс:
+Дизайн и концепция игры: (игра-платформер, игра 3Д, игра-квест, игра с выбором ответов, игра-тапалка, игра-детектив, игра-симулятор, игра в виде кроссворда, игра крестики-нолики, игра на соотнесение слов и орфограмм и проч)</pre></div><h3 class="sub">Фото для соцсетей</h3><div class="duo"><div class="spell"><div class="spellhead"><span class="spelltitle">Промт для фото</span><button class="copy" type="button">Скопировать</button></div><pre>Создай фото в формате рилс/квадрат, не меняй черты лица девушки. Сохрани черты лица девушки с загруженного фото. Стильный профессионал взаимодействует с голографическим интерфейсом или светящейся панелью данных, футуристичный синий свет на лице, sci-fi business aesthetic. На панели следующие надписи:</pre></div><figure class="gallery g1"><button class="shot" type="button" data-full="m/i26.webp"><img src="m/i26.webp" alt="" loading="lazy"></button><figcaption>Что получилось</figcaption></figure></div></div><nav class="lnav"><button class="btn" type="button" data-go="intro">← Вводный урок</button><button class="btn primary" type="button" data-go="gemini" data-done="qwen">Пройдено, дальше →</button></nav></article><article class="lesson" id="L-gemini" hidden><div class="lhead"><span class="eyebrow">Урок 3 из 10</span><h2>Блок 2. Gemini: квесты, тесты, фоны, герои</h2><p class="lead">Квесты, тесты, атмосферные фоны и герои в Gemini.</p></div><div class="lbody"><div class="duo"><figure class="loopv"><video src="m/media3.mp4" autoplay muted loop playsinline preload="metadata"></video><figcaption>Живой фон из урока</figcaption></figure><figure class="gallery g2"><button class="shot" type="button" data-full="m/i27.webp"><img src="m/i27.webp" alt="" loading="lazy"></button><button class="shot" type="button" data-full="m/i28.webp"><img src="m/i28.webp" alt="" loading="lazy"></button><figcaption>Фоны, созданные в Gemini</figcaption></figure></div><div class="player" data-src="m/media4.mp4"><button class="cover" type="button" aria-label="Смотреть: Квесты, тесты, фоны и герои в Gemini"><span class="playseal">▶</span><span class="ptitle">Квесты, тесты, фоны и герои в Gemini</span><span class="pdur">7:22</span></button></div><h3 class="sub">Как зайти в Gemini</h3><div class="links"><a class="linkbtn" href="https://gemini.google.com/app?hl=ru" target="_blank" rel="noopener"><b>Gemini</b><span>gemini.google.com</span></a><a class="linkbtn" href="https://t.me/richivpn_bot?start=495811926" target="_blank" rel="noopener"><b>VPN Richi</b><span>Telegram-бот, стоит копейки</span></a><a class="linkbtn" href="https://px6.net/?r=850735" target="_blank" rel="noopener"><b>Прокси</b><span>px6.net</span></a></div><aside class="note warn"><span class="notetitle">Важно</span><p>Нужен VPN, который поддерживает Gemini, <b>либо прокси</b> — инструкция в видео ниже. Регистрация через любой Google-аккаунт занимает 10 секунд.</p></aside><div class="duo"><div class="player" data-src="m/media5.mp4"><button class="cover" type="button" aria-label="Смотреть: Инструкция: как открыть Gemini"><span class="playseal">▶</span><span class="ptitle">Инструкция: как открыть Gemini</span><span class="pdur">5:38</span></button></div><figure class="gallery g1"><button class="shot" type="button" data-full="m/i29.webp"><img src="m/i29.webp" alt="" loading="lazy"></button></figure></div><h3 class="sub">Google AI Studio</h3><div class="links"><a class="linkbtn" href="https://aistudio.google.com/apps" target="_blank" rel="noopener"><b>AI Studio</b><span>ответвление Gemini для приложений</span></a></div><figure class="gallery g1"><button class="shot" type="button" data-full="m/i31.webp"><img src="m/i31.webp" alt="" loading="lazy"></button></figure><div class="spell"><div class="spellhead"><span class="spelltitle">Когда игра готова, напишите</span><button class="copy" type="button">Скопировать</button></div><pre>Отправь готовый файл для скачивания</pre></div></div><nav class="lnav"><button class="btn" type="button" data-go="qwen">← Блок 1. Квесты и фото в Qwen</button><button class="btn primary" type="button" data-go="github" data-done="gemini">Пройдено, дальше →</button></nav></article><article class="lesson" id="L-github" hidden><div class="lhead"><span class="eyebrow">Урок 4 из 10</span><h2>Ссылка на веб-квест через GitHub</h2><p class="lead">Как превратить игру в ссылку, которую можно отправить ученику.</p></div><div class="lbody"><div class="player" data-src="m/media6.mp4"><button class="cover" type="button" aria-label="Смотреть: Делаем ссылку на веб-квест"><span class="playseal">▶</span><span class="ptitle">Делаем ссылку на веб-квест</span><span class="pdur">1:54</span></button></div><div class="links"><a class="linkbtn" href="https://github.com/" target="_blank" rel="noopener"><b>GitHub</b><span>github.com</span></a></div><figure class="gallery g1"><button class="shot" type="button" data-full="m/i32.webp"><img src="m/i32.webp" alt="" loading="lazy"></button></figure></div><nav class="lnav"><button class="btn" type="button" data-go="gemini">← Блок 2. Gemini: квесты, тесты, фоны, герои</button><button class="btn primary" type="button" data-go="video" data-done="github">Пройдено, дальше →</button></nav></article><article class="lesson" id="L-video" hidden><div class="lhead"><span class="eyebrow">Урок 5 из 10</span><h2>Блок 3. Оживляем фото: видео в Flow</h2><p class="lead">Превращаем картинки в живые видео для уроков.</p></div><div class="lbody"><div class="links"><a class="linkbtn" href="https://labs.google/fx/ru/tools/flow" target="_blank" rel="noopener"><b>Google Flow</b><span>labs.google</span></a></div><div class="spell"><div class="spellhead"><span class="spelltitle">Промт для видео</span><button class="copy" type="button">Скопировать</button></div><pre>Оживи видео, не меняй размер с фото, должно происходить:…</pre></div><div class="player" data-src="m/media7.mp4"><button class="cover" type="button" aria-label="Смотреть: Оживляем фото в Flow"><span class="playseal">▶</span><span class="ptitle">Оживляем фото в Flow</span><span class="pdur">2:28</span></button></div><figure class="gallery g1"><button class="shot" type="button" data-full="m/i33.webp"><img src="m/i33.webp" alt="" loading="lazy"></button></figure><div class="duo"><figure class="loopv"><video src="m/media3.mp4" autoplay muted loop playsinline preload="metadata"></video><figcaption>Наше видео с урока</figcaption></figure><figure class="gallery g1"><button class="shot" type="button" data-full="m/i27.webp"><img src="m/i27.webp" alt="" loading="lazy"></button><figcaption>Исходное фото</figcaption></figure></div><h3 class="sub">Бонус: убрать водяной знак</h3><div class="links"><a class="linkbtn" href="https://magiceraser.org/sora-watermark-remover/" target="_blank" rel="noopener"><b>Magic Eraser</b><span>удаление водяного знака на фото</span></a></div><div class="trio"><figure class="gallery g1"><button class="shot" type="button" data-full="m/i36.webp"><img src="m/i36.webp" alt="" loading="lazy"></button><figcaption>Фото</figcaption></figure><figure class="loopv"><video src="m/media8.mp4" autoplay muted loop playsinline preload="metadata"></video><figcaption>Видео</figcaption></figure><figure class="gallery g1"><button class="shot" type="button" data-full="m/i37.gif"><img src="m/i37.gif" alt="" loading="lazy"></button><figcaption>Как убрать знак</figcaption></figure></div></div><nav class="lnav"><button class="btn" type="button" data-go="github">← Ссылка на веб-квест через GitHub</button><button class="btn primary" type="button" data-go="gpt" data-done="video">Пройдено, дальше →</button></nav></article><article class="lesson" id="L-gpt" hidden><div class="lhead"><span class="eyebrow">Урок 6 из 10</span><h2>Блок 4. ChatGPT: задания и таблички</h2><p class="lead">Быстрые игры, тематические задания, таблицы и рабочие листы.</p></div><div class="lbody"><div class="links"><a class="linkbtn" href="https://chatgpt.com/ru-RU/" target="_blank" rel="noopener"><b>ChatGPT</b><span>chatgpt.com</span></a></div><p>Для чего: быстрые игры, тематические задания, таблички.</p><div class="player" data-src="m/media9.mp4"><button class="cover" type="button" aria-label="Смотреть: Задания и игры в ChatGPT"><span class="playseal">▶</span><span class="ptitle">Задания и игры в ChatGPT</span><span class="pdur">4:38</span></button></div><figure class="gallery g1"><button class="shot" type="button" data-full="m/i39.webp"><img src="m/i39.webp" alt="" loading="lazy"></button></figure><h3 class="sub">Работа с табличками: GPT, Qwen</h3><div class="spell"><div class="spellhead"><span class="spelltitle">Промт для таблички</span><button class="copy" type="button">Скопировать</button></div><pre>Переделай в дизайн в духе …, в стиле …, не меняй текст с картинки и все русские буквы строго сохрани как было</pre></div><figure class="gallery g2"><button class="shot" type="button" data-full="m/i40.webp"><img src="m/i40.webp" alt="" loading="lazy"></button><button class="shot" type="button" data-full="m/i41.webp"><img src="m/i41.webp" alt="" loading="lazy"></button><figcaption>До и после</figcaption></figure><h3 class="sub">Рабочие листы</h3><div class="duo"><div class="spell"><div class="spellhead"><span class="spelltitle">Промт для рабочего листа</span><button class="copy" type="button">Скопировать</button></div><pre>Создай в стиле Гарри Поттера рабочий лист А4 с заданиями на тему спряжений глаголов, 6 класс. Затем пришли файл с ответами в таком же стиле</pre></div><figure class="gallery g1"><button class="shot" type="button" data-full="m/i42.webp"><img src="m/i42.webp" alt="" loading="lazy"></button></figure></div><h3 class="sub">Пробник ЕГЭ</h3><div class="duo"><div class="spell"><div class="spellhead"><span class="spelltitle">Любой ИИ</span><button class="copy" type="button">Скопировать</button></div><pre>Создай готовый пробник ЕГЭ по русскому 2026 со сложными заданиями файл. Все задания в тематике Гарри Поттера. Отдельно сделай ответы</pre></div><figure class="gallery g1"><button class="shot" type="button" data-full="m/i43.webp"><img src="m/i43.webp" alt="" loading="lazy"></button></figure></div><h3 class="sub">Карточки для запоминания</h3><div class="duo"><div class="spell"><div class="spellhead"><span class="spelltitle">Промт для карточек</span><button class="copy" type="button">Скопировать</button></div><pre>Создай серию карточек (картинки) для запоминания ударений в стиле Гарри Поттера</pre></div><figure class="gallery g1"><button class="shot" type="button" data-full="m/i44.webp"><img src="m/i44.webp" alt="" loading="lazy"></button></figure></div></div><nav class="lnav"><button class="btn" type="button" data-go="video">← Блок 3. Оживляем фото: видео в Flow</button><button class="btn primary" type="button" data-go="generator" data-done="gpt">Пройдено, дальше →</button></nav></article><article class="lesson" id="L-generator" hidden><div class="lhead"><span class="eyebrow">Урок 7 из 10</span><h2>Генератор игр со своими учениками</h2><p class="lead">Игра, в которую можно вставить фото ученика и свой фон.</p></div><div class="lbody"><p>Где делать: Gemini, Qwen.</p><figure class="gallery g1"><button class="shot" type="button" data-full="m/i45.webp"><img src="m/i45.webp" alt="" loading="lazy"></button></figure><div class="player" data-src="m/media10.mp4"><button class="cover" type="button" aria-label="Смотреть: Генератор игр: вставляем ученика"><span class="playseal">▶</span><span class="ptitle">Генератор игр: вставляем ученика</span><span class="pdur">2:31</span></button></div><h3 class="sub">Пример: платформер на тему Н-НН</h3><div class="duo"><div class="spell"><div class="spellhead"><span class="spelltitle">Промт для игры</span><button class="copy" type="button">Скопировать</button></div><pre>Создай интерактивную игру-платформер на тему Н-НН.
+Механика игры: сбор монеток.
+Атмосфера дизайна: пиратская.
+Герой-пират прыгает по платформе и собирает монетки — за верный ответ за каждое слово.
+Количество собранных очков отображено.
+Файл HTML, адаптировано под мобильную версию.
+Должно открываться на полный экран.
+В конце за все собранные монетки всплывает окно «Ура! Победа»</pre></div><figure class="gallery g1"><button class="shot" type="button" data-full="m/i47.webp"><img src="m/i47.webp" alt="" loading="lazy"></button></figure></div><figure class="gallery g2"><button class="shot" type="button" data-full="m/i48.webp"><img src="m/i48.webp" alt="" loading="lazy"></button><button class="shot" type="button" data-full="m/i49.webp"><img src="m/i49.webp" alt="" loading="lazy"></button><figcaption>Благодаря генератору вставила ученика</figcaption></figure><h3 class="sub">Промт генератора целиком</h3><div class="spell"><div class="spellhead"><span class="spelltitle">Создай генератор</span><button class="copy" type="button">Скопировать</button></div><pre>Создай генератор. Действуй как Senior Frontend Developer и Game Designer. Напиши интерактивную обучающую 2D-игру платформер на чистом HTML, CSS и JavaScript (Canvas API) в одном файле.
+Тема: Правило русского языка «Н и НН в суффиксах» для старшеклассников
+
+1. Стартовое меню (UI/UX):
+Меню должно быть поверх игры и кнопкой «Начать игру».
+Добавь инпуты &lt;input type=&quot;file&quot;&gt; для загрузки кастомного фона (jpg/png) и кастомного героя (png с прозрачностью) через FileReader.
+Добавь ползунок &lt;input type=&quot;range&quot;&gt; для изменения размера героя (от 40px до 200px, по умолчанию 90px). Хитбокс (ширина и высота) героя должен строго соответствовать этому значению.
+
+2. Механика игры и физика (Без багов):
+Управление: Стрелки влево/вправо (или A/D) для бега, Стрелка вверх/Пробел/W для прыжка.
+Генерация мира: Платформы генерируются бесконечно и движутся влево (эффект бега героя вправо). Расстояние между платформами (gaps) должно быть строго проходимым! Настрой гравитацию (gravity), силу прыжка (jumpPower) и скорость (speed) так, чтобы герой легко долетал до следующей платформы без технических «недолетов».
+Коллизии: Игрок должен приземляться строго на верхнюю грань платформы. Исключи баги проваливания сквозь текстуры. Ограничь выход героя за левый и правый края экрана.
+Полноэкранный режим: Добавь кнопку «На весь экран», которая использует нативный Fullscreen API (requestFullscreen). Canvas должен автоматически ресайзиться под размер окна (window.innerWidth/innerHeight).
+
+3. Обучающая часть (Сбор монет):
+На некоторых платформах генерируются золотые монетки. При касании монетки (проверка дистанции между центрами) игра ставится на паузу.
+Появляется модальное HTML-окно. В нем выводится случайное слово из базы (например, «Стекля__ый») и две кнопки: «Н» и «НН».
+Верный ответ: Модальное окно закрывается, выводится зеленая надпись «Верно!», счет увеличивается на 10, скорость игры чуть возрастает, игра продолжается.
+Неверный ответ: Выводится красная надпись с правильным написанием слова, игра продолжается без начисления очков.
+
+4. Технические требования:
+Все стили и скрипты должны быть внутри одного HTML-файла. Используй requestAnimationFrame для игрового цикла.
+Если герой падает мимо платформы за нижний край экрана (y &gt; canvas.height) — игра окончена (alert с итоговым счетом) и возвращение в главное меню.
+Сделай красивый современный CSS-дизайн модальных окон и кнопок, добавь пиратские шрифты (например, Russo One из Google Fonts).</pre></div><aside class="note tip"><span class="notetitle">Лайфхак</span><p>Просите ИИ сначала придумать вам промт для игры, а уже потом вставляйте. И в том же чате вносите правки: что поменять, что докрутить!</p></aside></div><nav class="lnav"><button class="btn" type="button" data-go="gpt">← Блок 4. ChatGPT: задания и таблички</button><button class="btn primary" type="button" data-go="avatars" data-done="generator">Пройдено, дальше →</button></nav></article><article class="lesson" id="L-avatars" hidden><div class="lhead"><span class="eyebrow">Урок 8 из 10</span><h2>Аватары учеников</h2><p class="lead">Делаем героя игры из фото ученика.</p></div><div class="lbody"><figure class="gallery g2"><button class="shot" type="button" data-full="m/i50.webp"><img src="m/i50.webp" alt="" loading="lazy"></button><button class="shot" type="button" data-full="m/i48.webp"><img src="m/i48.webp" alt="" loading="lazy"></button><figcaption>Из фото — в героя игры</figcaption></figure><div class="links"><a class="linkbtn" href="https://umnik.ai/?utm_source=vc" target="_blank" rel="noopener"><b>Umnik.ai</b><span>любая ИИ</span></a><a class="linkbtn" href="https://gemini.google.com/app" target="_blank" rel="noopener"><b>Gemini</b><span>gemini.google.com</span></a></div><div class="spell"><div class="spellhead"><span class="spelltitle">Промт 1</span><button class="copy" type="button">Скопировать</button></div><pre>Сгенерируй изображение в стиле ……. Главный персонаж — человек с загруженного референса.
+Критически важно: Полностью скопируй и сохрани черты лица с референса (форму глаз, нос, губы, овал лица, пропорции и уникальные особенности). Внешность должна быть идентична исходнику на 100%.
+Человек должен быть в полный рост и одет в стиле …..</pre></div><div class="spell"><div class="spellhead"><span class="spelltitle">Промт 2</span><button class="copy" type="button">Скопировать</button></div><pre>3D-персонаж в стиле анимации Pixar и Disney. Пропорциональное тело, голова нормального (не увеличенного) размера, высокая детализация лица, большие выразительные глаза, легкая дружелюбная улыбка. Внешность лица и фигуру полностью оставь как на референсе.
+Гладкий 3D CGI рендер, мягкое кинематографичное освещение, насыщенные цвета, разрешение 8k, Unreal Engine 5, волшебная атмосфера.</pre></div><figure class="gallery g2"><button class="shot" type="button" data-full="m/i51.webp"><img src="m/i51.webp" alt="" loading="lazy"></button><button class="shot" type="button" data-full="m/i52.webp"><img src="m/i52.webp" alt="" loading="lazy"></button><figcaption>Было → стало</figcaption></figure><h3 class="sub">Как загрузить ученика в игру</h3><div class="links"><a class="linkbtn" href="https://www.remove.bg/ru/upload" target="_blank" rel="noopener"><b>remove.bg</b><span>удалить фон онлайн</span></a><a class="linkbtn" href="https://ltdfoto.ru" target="_blank" rel="noopener"><b>ltdfoto.ru</b><span>загрузить фото без фона и получить ссылку</span></a><a class="linkbtn" href="https://www.iloveimg.com/ru" target="_blank" rel="noopener"><b>iLoveIMG</b><span>увеличить резкость</span></a></div><figure class="gallery g2"><button class="shot" type="button" data-full="m/i53.webp"><img src="m/i53.webp" alt="" loading="lazy"></button><button class="shot" type="button" data-full="m/i54.webp"><img src="m/i54.webp" alt="" loading="lazy"></button><figcaption>Ученик без фона — готов к игре</figcaption></figure><aside class="note tip"><span class="notetitle">Где смотреть</span><p>Об этом подробно — в видео урока «Генератор игр со своими учениками».</p></aside></div><nav class="lnav"><button class="btn" type="button" data-go="generator">← Генератор игр со своими учениками</button><button class="btn primary" type="button" data-go="husband" data-done="avatars">Пройдено, дальше →</button></nav></article><article class="lesson" id="L-husband" hidden><div class="lhead"><span class="eyebrow">Урок 9 из 10</span><h2>Бонус: агрегаторы ИИ</h2><p class="lead">Гайд от мужа: как пользоваться агрегаторами нейросетей.</p></div><div class="lbody"><div class="duo"><figure class="gallery g1"><button class="shot" type="button" data-full="m/i55.webp"><img src="m/i55.webp" alt="" loading="lazy"></button></figure><div><p>Муж попросил добавить гайд про агрегаторы ИИ от его лица. Ссылка на агрегатор, о котором он рассказывает:</p><div class="links"><a class="linkbtn" href="https://syntx.ai/welcome/xLiNgn4O" target="_blank" rel="noopener"><b>Syntx</b><span>агрегатор нейросетей</span></a></div></div></div><figure class="gallery g1"><button class="shot" type="button" data-full="m/i56.webp"><img src="m/i56.webp" alt="" loading="lazy"></button><figcaption>Игра, которая у него получилась</figcaption></figure></div><nav class="lnav"><button class="btn" type="button" data-go="avatars">← Аватары учеников</button><button class="btn primary" type="button" data-go="gift" data-done="husband">Пройдено, дальше →</button></nav></article><article class="lesson" id="L-gift" hidden><div class="lhead"><span class="eyebrow">Урок 10 из 10</span><h2>Подарок: генератор уроков-игр</h2><p class="lead">50 игровых механик: выбираете игру, заполняете анкету — получаете готовый промт.</p></div><div class="lbody"><div class="giftbox" id="giftbox"><div class="box"><span class="lid"></span><span class="ribbon-v"></span><span class="ribbon-h"></span><span class="bow"></span></div><p class="gifttxt">Для вас приготовлен подарок</p><button class="btn primary big" type="button" id="opengift">Открыть подарок ✦</button></div><div class="reveal" id="reveal" hidden><div class="revealhead"><span class="eyebrow">Ваш подарок</span><h3>Генератор уроков-игр</h3><p>50 игровых механик в 7 темах: платформер, кафе, escape room, викторина-шоу, комикс, лаборатория зелий и другие. Выбираете механику, отвечаете на вопросы анкеты про урок и героя — и получаете готовый промт. Вставляете его в Claude, ChatGPT или DeepSeek, и нейросеть собирает игру одним HTML-файлом.</p></div><div class="iconrow"><img src="m/g_platformer.webp" alt="" loading="lazy"><img src="m/g_cafe.webp" alt="" loading="lazy"><img src="m/g_escape.webp" alt="" loading="lazy"><img src="m/g_quiz.webp" alt="" loading="lazy"><img src="m/g_comic.webp" alt="" loading="lazy"><img src="m/g_wheel.webp" alt="" loading="lazy"><img src="m/g_detective.webp" alt="" loading="lazy"><img src="m/g_lab.webp" alt="" loading="lazy"></div><a class="btn primary big genlink" href="generator.html" target="_blank" rel="noopener">Открыть генератор ↗</a></div><h3 class="sub">Как вставить своего героя в любую игру</h3><div class="player" data-src="m/hero.mp4"><button class="cover" type="button" aria-label="Смотреть: Как вставить своего героя в любую игру"><span class="playseal">▶</span><span class="ptitle">Как вставить своего героя в любую игру</span><span class="pdur">1:07</span></button></div><aside class="note tip"><span class="notetitle">Совет</span><p>Сохраните ссылку на генератор в закладки — он пригодится к каждому уроку. Ответы анкеты и уровень мага сохраняются в вашем браузере.</p></aside></div><nav class="lnav"><button class="btn" type="button" data-go="husband">← Бонус: агрегаторы ИИ</button><button class="btn primary" type="button" data-go="home" data-done="gift">Пройдено, завершить курс ✦</button></nav></article>
+      </div>
+    </div>
+  </section>
+  <p class="foot">Отметки о пройденных уроках сохраняются в этом браузере.</p>
+</div>
+
+<script>
+const IDS=["intro", "qwen", "gemini", "github", "video", "gpt", "generator", "avatars", "husband", "gift"];
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+let done={};try{done=JSON.parse(localStorage.getItem('nm-course-done')||'{}')||{};}catch(e){}
+const save=()=>{try{localStorage.setItem('nm-course-done',JSON.stringify(done));}catch(e){}};
+function paint(){
+  const n=IDS.filter(id=>done[id]).length;
+  $('#progtxt').textContent=`${n} из ${IDS.length}`;$('#progbar').style.width=(n/IDS.length*100)+'%';
+  $$('[data-go]').forEach(b=>{if(b.classList.contains('lcard')||b.classList.contains('snav'))b.classList.toggle('done',!!done[b.dataset.go]);});
+  const next=IDS.find(id=>!done[id]);const sb=$('#startbtn');
+  if(n===0){sb.textContent='Начать обучение →';sb.dataset.go=IDS[0];}
+  else if(next){sb.textContent='Продолжить обучение →';sb.dataset.go=next;}
+  else{sb.textContent='Курс пройден ✦ пересмотреть';sb.dataset.go=IDS[0];}
+}
+function stopVideos(){ $$('.player video').forEach(v=>v.pause()); }
+function show(id){
+  stopVideos();
+  if(!IDS.includes(id)){ $('#lessons').hidden=true;$('#home').hidden=false; }
+  else{
+    $('#home').hidden=true;$('#lessons').hidden=false;
+    $$('.lesson').forEach(a=>a.hidden=a.id!=='L-'+id);
+    $$('.snav').forEach(b=>b.setAttribute('aria-current',b.dataset.go===id));
+  }
+  window.scrollTo(0,0);
+}
+function go(id){
+  if(id==='home'){ if(location.hash){try{history.pushState(null,'',location.pathname+location.search);}catch(e){location.hash='';}} show('home'); }
+  else if(location.hash.slice(1)!==id) location.hash=id; else show(id);
+}
+addEventListener('hashchange',()=>show(location.hash.slice(1)));
+document.addEventListener('click',e=>{
+  const c=e.target.closest('.copy');
+  if(c){const t=c.closest('.spell').querySelector('pre').textContent;
+    const ok=()=>{c.textContent='Скопировано ✓';c.classList.add('ok');setTimeout(()=>{c.textContent='Скопировать';c.classList.remove('ok');},1800);};
+    const fb=()=>{const r=document.createRange();r.selectNodeContents(c.closest('.spell').querySelector('pre'));const s=getSelection();s.removeAllRanges();s.addRange(r);c.textContent='Выделено — Ctrl+C';};
+    try{navigator.clipboard.writeText(t).then(ok,fb);}catch(err){fb();}return;}
+  const cov=e.target.closest('.cover');
+  if(cov){const pl=cov.parentNode;const v=document.createElement('video');v.src=pl.dataset.src;v.controls=true;v.playsInline=true;v.setAttribute('playsinline','');v.preload='auto';pl.appendChild(v);cov.remove();v.play().catch(()=>{});return;}
+  const sh=e.target.closest('.shot');
+  if(sh){const lb=document.createElement('div');lb.className='lightbox';lb.innerHTML=`<img src="${sh.dataset.full}" alt="">`;lb.onclick=()=>lb.remove();document.body.appendChild(lb);return;}
+  const g=e.target.closest('[data-go]');
+  if(g){ if(g.dataset.done){done[g.dataset.done]=1;save();paint();} go(g.dataset.go); }
+});
+addEventListener('keydown',e=>{if(e.key==='Escape')$$('.lightbox').forEach(l=>l.remove());});
+
+/* золотая пыль */
+(()=>{const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;const c=$('#dust'),x=c.getContext('2d');let W,H,P=[];
+ const size=()=>{const d=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;x.setTransform(d,0,0,d,0,0);
+  P=Array.from({length:Math.round(Math.min(60,W*H/20000))},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+.4,v:Math.random()*.2+.04,ph:Math.random()*6.3}));};
+ const draw=m=>{x.clearRect(0,0,W,H);x.globalCompositeOperation='lighter';for(const p of P){if(m){p.y-=p.v;p.ph+=.02;if(p.y<-5){p.y=H+5;p.x=Math.random()*W;}}
+  const a=.25+.55*Math.abs(Math.sin(p.ph));const g=x.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*4);g.addColorStop(0,`rgba(255,215,140,${a})`);g.addColorStop(1,'rgba(255,215,140,0)');x.fillStyle=g;x.beginPath();x.arc(p.x,p.y,p.r*4,0,6.3);x.fill();}};
+ const loop=()=>{if(!document.hidden)draw(true);requestAnimationFrame(loop);};
+ addEventListener('resize',()=>{size();if(RM)draw(false);});size();if(RM)draw(false);else loop();})();
+
+document.addEventListener('click',e=>{if(e.target.id==='opengift'){const gb=document.getElementById('giftbox');gb.classList.add('open');setTimeout(()=>{gb.hidden=true;document.getElementById('reveal').hidden=false;},650);}});
+paint();show(location.hash.slice(1));
+</script>
+
+</body>
+</html>
